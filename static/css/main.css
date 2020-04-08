@@ -163,6 +163,26 @@ nav a:hover {
 }
 
 
+/* flash messages styling */
+
+.flashes ul {
+    margin: 0 0;
+    background: #c5c5c5;
+    color: #000;
+    list-style-type: none;
+    list-style: none;
+}
+
+.flashes ul li {
+    list-style-type: none;
+    list-style: none;
+}
+
+article.flashes {
+    margin-bottom: 1em;
+}
+
+
 /* ===============
     ALL: IE Fixes
    =============== */
