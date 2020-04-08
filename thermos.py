@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, redirect
 from datetime import datetime
 from logging import DEBUG
 
@@ -29,6 +29,7 @@ def add():
         url = request.form['url']
         store_bookmarks(url)
         app.logger.debug(f'stored url: {url}')
+        return redirect(url_for('index'))
     return render_template('add.html')
 
 @app.errorhandler(404)
