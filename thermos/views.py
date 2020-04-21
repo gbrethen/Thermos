@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
+from flask import Flask, render_template, url_for, request, redirect, flash, abort
 from flask_login import login_required, login_user, logout_user, current_user
 
 from thermos import app
@@ -30,6 +30,20 @@ def add():
         flash(f"stored : {description}")
         return redirect(url_for('index'))
     return render_template('add.html', form=form)
+
+@app.route('/edit/<int:bookmark_id>', methods=['GET', 'POST'])
+@login_required
+def edit_bookmark(bookmark_id):
+    bookmark = Bookmark.query.get_or_404(bookmark_id)
+    if current_user != bookmark.user:
+        abort(403)
+    form = BookmarkForm(obj=bookmark)
+    if form.validate_on_submit():
+        form.populate_obj(bookmark) # flask wtf function
+        db.session.commit()
+        flash(f"Stored {bookmark.description}")
+        return redirect(url_for('user', username=current_user.username))
+    return render_template('bookmark_form.html', form=form, title="Edit bookmark")
 
 @app.route('/user/<username>')
 def user(username):
