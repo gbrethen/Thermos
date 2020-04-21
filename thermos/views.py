@@ -1,5 +1,5 @@
 from flask import Flask, render_template, url_for, request, redirect, flash
-from flask_login import login_required, login_user, current_user
+from flask_login import login_required, login_user, logout_user, current_user
 
 from thermos import app
 from thermos import db
@@ -54,6 +54,17 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        user = User(email=form.email.data, username=form.username.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Welcome, {user.username}! Please login.')
+        return redirect(url_for('login'))
+    return render_template("signup.html", form=form)
 
 @app.errorhandler(404)
 def page_not_found(e):
