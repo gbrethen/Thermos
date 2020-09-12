@@ -1,5 +1,5 @@
-from flask import Flask, render_template, url_for, request, redirect, flash
-from flask_login import login_required, login_user, current_user
+from flask import Flask, render_template, url_for, request, redirect, flash, abort
+from flask_login import login_required, login_user, logout_user, current_user
 
 from thermos import app
 from thermos import db
@@ -31,6 +31,20 @@ def add():
         return redirect(url_for('index'))
     return render_template('add.html', form=form)
 
+@app.route('/edit/<int:bookmark_id>', methods=['GET', 'POST'])
+@login_required
+def edit_bookmark(bookmark_id):
+    bookmark = Bookmark.query.get_or_404(bookmark_id)
+    if current_user != bookmark.user:
+        abort(403)
+    form = BookmarkForm(obj=bookmark)
+    if form.validate_on_submit():
+        form.populate_obj(bookmark) # flask wtf function
+        db.session.commit()
+        flash(f"Stored {bookmark.description}")
+        return redirect(url_for('user', username=current_user.username))
+    return render_template('bookmark_form.html', form=form, title="Edit bookmark")
+
 @app.route('/user/<username>')
 def user(username):
     user = User.query.filter_by(username=username).first_or_404()
@@ -54,6 +68,17 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    form = SignupForm()
+    if form.validate_on_submit():
+        user = User(email=form.email.data, username=form.username.data, password=form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash(f'Welcome, {user.username}! Please login.')
+        return redirect(url_for('login'))
+    return render_template("signup.html", form=form)
 
 @app.errorhandler(404)
 def page_not_found(e):
